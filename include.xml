@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+  <haxelib name="openfl"/>
+  
+  <haxeflag name="--macro" value="com.yanri.yadconsole.Initializer.init()" if="yadc_scan" />
+  <!-- assets -->
+  <assets path="assets/img" rename="YADConsoleResources" />
+</project>

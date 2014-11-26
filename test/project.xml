@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<!-- NMML reference: https://gist.github.com/1763850 -->
+	
+	<!-- metadata, make sure 'package' is at least 3 segments (ie. com.mycompany.myproject) -->
+	<meta title="YADConsole" package="YADConsole" version="1.0.0" company="Yanrishatum" />
+	
+	<!-- output -->
+	<app main="Main" file="YADConsole" path="bin" />
+	
+	<window background="#000000" fps="60" />
+	<window width="800" height="480" unless="mobile" />
+	<window orientation="landscape" vsync="false" antialiasing="0" if="cpp" />
+	
+	<!-- classpath, haxe libs -->
+	<source path="../src" />
+	<source path="src" />
+	<haxelib name="openfl" />
+	<haxelib name="actuate" /> 
+  <haxelib name="hscript"/>
+	
+  <set name="yadc_scan"/>
+  
+  <haxeflag name="--macro" value="com.yanri.yadconsole.Initializer.init()" if="yadc_scan" />
+  <!-- assets -->
+	<assets path="../assets/img" rename="YADConsoleResources" />
+	
+	<!-- optimize output
+	<haxeflag name="-dce full" /> -->
+	
+</project>

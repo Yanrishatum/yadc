@@ -1,0 +1,14 @@
+{
+  "name": "Yet Another Debug Console",
+  "url" : "https://github.com/yanrishatum/yadc/",
+  "license": "MIT",
+  "tags": ["debug", "console"],
+  "description": "Yet another implementation of debug runtime console. Main features work only with HScript library. Main feature - autocomplete for variables, access to all classes in compiled file and extended fields information.",
+  "version": "0.0.1",
+  "releasenote": "Initial release.",
+  "contributors": ["Yanrishatum"],
+  "dependencies":
+  {
+    "openfl": ""
+  }
+}
