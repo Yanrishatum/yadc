@@ -309,7 +309,7 @@ class AutocompleteHelper extends Sprite
   {
     if (val != null)
     {
-      switch (Type.typeof(parent))
+      switch (Type.typeof(val))
       {
         case ValueType.TClass(cl):
           var name:String = Type.getClassName(cl);

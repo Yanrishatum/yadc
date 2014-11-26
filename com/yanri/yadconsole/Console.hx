@@ -60,10 +60,11 @@ class Console extends Sprite
   // YADC: Configurable keys.
   // YADC: Help command
   // YADC: Show documentation
-  // YADC: Properties support
+  // YADC: Properties support (requires modding of HScript, because it's uses setField instead of setProperty)
   // YADC: Normal ConsoleCommand description for autocomplete.
+  // YADC: Anonymous types variable type descriptions for helper.
   
-  private static inline var VERSION:String = "0.0.1";
+  private static inline var VERSION:String = "0.0.2";
   
   /**
    * The consle instance

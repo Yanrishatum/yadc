@@ -34,7 +34,7 @@ class Initializer
   {
     for (type in types)
     {
-      var b:BaseType, name:String;
+      var name:String;
       var root:ScanEntry;
       switch (type)
       {
@@ -65,8 +65,6 @@ class Initializer
                 entry(field.isPublic ? AutocompleteType.TStaticVariable : AutocompleteType.TPrivateStaticVariable, field.name, field.name + ":" + typeToStr(field.type), root, field.doc);
             }
           }
-          
-          b = c.get();
         case Type.TEnum(e, _):
           var t:EnumType = e.get();
           name = t.name;
@@ -83,11 +81,8 @@ class Initializer
                 entry(AutocompleteType.TEnum, constr.name, constr.name, root, constr.doc);
             }
           }
-          b = e.get();
         default: continue;
       }
-      //var p:String = b.pack.join(".") + "." + name;
-      //trace(p);
     }
     Context.addResource("__YADC_SCAN__", Bytes.ofString(Serializer.run(scan)));
   }
