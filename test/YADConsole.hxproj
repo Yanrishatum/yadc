@@ -20,7 +20,7 @@
     <class path="S:\HaxeToolkit\haxe\lib\lime\2,0,0-beta" />
     <class path="S:\HaxeToolkit\haxe\lib\actuate\1,7,5" />
     <class path="S:\HaxeToolkit\haxe\lib\hscript\2,0,4" />
-    <class path="..\src" />
+    <class path=".." />
     <class path="src" />
     <class path="bin\html5\haxe" />
   </classpaths>
