@@ -1,13 +1,15 @@
-Yet Another Debug Console.
-Provides basic console capabilities.
-Commands can be used for simple or in-game restricted use. They can take only 4 types - String, Bool, Float, Int.
-Format of commands:
-  <command name> [arg] [arg] '[arg that contains spaces]' "[args that cotains spaces]"
-It's recommended to make all command handler arguments optional.
+## Yet Another Debug Console.
 
-But mainly console designed for using HScript library. (It's not in dependency list, you must include it manualy)
-Main feature of console is autocomplete, which can be used to speed up writing. The console will show available variables for objects.
-Also you can define "yadc_scan" for advanced class scan. Console will scan all classes in compiled project and will generate an advanced information about methods and variables, and also automatically defines all classes to access inside of scripts.
+Provides basic console capabilities.  
+Commands can be used for simple or in-game restricted use. They can take only 4 types - String, Bool, Float, Int.  
+Format of commands:  
+`<command name> [arg] [arg] '[arg that contains spaces]' "[args that cotains spaces]"`  
+It's recommended to make all command handler arguments optional.  
+
+But mainly console designed for using HScript library. (It's not in dependency list, you must include it manualy)  
+Main feature of console is autocomplete, which can be used to speed up writing. The console will show available variables for objects.  
+Also you can define "yadc_scan" for advanced class scan. Console will scan all classes in compiled project and will generate an advanced information about methods and variables, and also automatically defines all classes to access inside of scripts.  
+Images used in autocomplete component taken from FlashDevelop.  
 
 This work is licensed under MIT License.
 
