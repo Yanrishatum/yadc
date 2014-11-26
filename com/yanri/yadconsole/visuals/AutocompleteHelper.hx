@@ -56,7 +56,6 @@ class AutocompleteHelper extends Sprite
       }
     }
     
-    
     super();
   }
   
@@ -219,6 +218,8 @@ class AutocompleteHelper extends Sprite
       }
     }
     
+    possible.sort(sortColumns);
+    
     for (col in possible)
     {
       col.y = numChildren * 16;
@@ -228,6 +229,26 @@ class AutocompleteHelper extends Sprite
     this.graphics.beginFill(0x808080, 0.75);
     this.graphics.drawRect(0, 0, this.width, this.height);
     this.graphics.endFill();
+  }
+  
+  private function sortColumns(a:AutocompleteColumn, b:AutocompleteColumn):Int
+  {
+    var la:String = a.name.toLowerCase();
+    var lb:String = b.name.toLowerCase();
+    if (a.type == b.type) return nameSort(la, lb);
+    else
+    {
+      if (a.type == AutocompleteType.TPackage) return -1;
+      else if (b.type == AutocompleteType.TPackage) return 1;
+      else return nameSort(la, lb);
+    }
+  }
+  
+  private inline function nameSort(a:String, b:String):Int
+  {
+    if (a > b) return 1;
+    else if (a < b) return -1;
+    else return 0;
   }
   
   private function isStatic(t:AutocompleteType):Bool

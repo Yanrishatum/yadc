@@ -61,7 +61,6 @@ class Console extends Sprite
   // YADC: Help command
   // YADC: Show documentation
   // YADC: Properties support
-  // YADC: Sort autocomplete functions
   // YADC: Normal ConsoleCommand description for autocomplete.
   
   private static inline var VERSION:String = "0.0.1";
@@ -177,6 +176,7 @@ class Console extends Sprite
     scan = Unserializer.run(Resource.getString("__YADC_SCAN__"));
     for (pack in scan.childs)
     {
+      if (StringTools.startsWith(pack.realName, "__ASSET_")) continue; // Ignore assets.
       if (pack.type == AutocompleteType.TPackage)
       {
         var val:Dynamic = { };

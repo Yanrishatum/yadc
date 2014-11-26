@@ -19,10 +19,9 @@
 	<haxelib name="actuate" /> 
   <haxelib name="hscript"/>
 	
-  <set name="yadc_scan"/>
-  
-  <haxeflag name="--macro" value="com.yanri.yadconsole.Initializer.init()" if="yadc_scan" />
+  <haxedef name="yadc_scan"/>
   <!-- assets -->
+  <haxeflag name="--macro" value="com.yanri.yadconsole.Initializer.init()" />
 	<assets path="../assets/img" rename="YADConsoleResources" />
 	
 	<!-- optimize output

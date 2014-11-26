@@ -2,7 +2,7 @@
 <project>
   <haxelib name="openfl"/>
   
-  <haxeflag name="--macro" value="com.yanri.yadconsole.Initializer.init()" if="yadc_scan" />
+  <haxeflag name="--macro" value="com.yanri.yadconsole.Initializer.init()" />
   <!-- assets -->
   <assets path="assets/img" rename="YADConsoleResources" />
 </project>

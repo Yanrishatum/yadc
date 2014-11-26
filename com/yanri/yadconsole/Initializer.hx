@@ -20,8 +20,10 @@ class Initializer
   
   public static macro function init():Void
   {
+    #if yadc_scan
     scan = new ScanEntry(AutocompleteType.TPackage, "", "");
     Context.onGenerate(scanTypes);
+    #end
   }
   
   #if macro
