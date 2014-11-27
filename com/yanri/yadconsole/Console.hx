@@ -197,16 +197,16 @@ class Console extends Sprite
     
     #end
     
+    prevCommands = new Array();
+    commandsList = new Array();
+    commandsList.push(new ConsoleCommand("clear", null, "Clears console log", clear, this));
+    commandsList.push(new ConsoleCommand("mode", [CommandArgumentType.TString], "Switches console mode possible modes: hybrid, commands, scripts", changeMode, this));
+    
     autocomplete = new AutocompleteHelper(scan, commandsList);
     #if hscript
     autocomplete.variables = interp.variables;
     #end
     addChild(autocomplete);
-    
-    prevCommands = new Array();
-    commandsList = new Array();
-    commandsList.push(new ConsoleCommand("clear", null, "Clears console log", clear, this));
-    commandsList.push(new ConsoleCommand("mode", [CommandArgumentType.TString], "Switches console mode possible modes: hybrid, commands, scripts", changeMode, this));
     
   }
   
