@@ -499,7 +499,7 @@ class Console extends Sprite
   private function _runCommand(val:String, logError:Bool):Dynamic
   {
     var args:Array<String> = splitCommand(val, logError);
-    if (args == null && args.length == 0) return null;
+    if (args == null || args.length == 0) return null;
     val = args.shift().toLowerCase();
     
     for (command in commandsList)

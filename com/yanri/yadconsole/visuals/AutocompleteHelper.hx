@@ -292,7 +292,7 @@ class AutocompleteHelper extends Sprite
       case ValueType.TClass(cl):
         c = getVarClassColumn(cl, Type.getClassName(cl), name);
       case ValueType.TEnum(e):
-        c = new AutocompleteColumn(AutocompleteType.TEnum, name, null, null);
+        c = getVarEnumColumn(e, Type.getEnumName(e), name);
       default:
         if (parentScan != null && (childScan = parentScan.child(name)) != null) c = getScanColumn(childScan);
         else
