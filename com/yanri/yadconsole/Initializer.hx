@@ -38,53 +38,108 @@ class Initializer
       var root:ScanEntry;
       switch (type)
       {
-        case Type.TInst(c, _): // Class
+        case Type.TInst(c, params): // Class
           var t:ClassType = c.get();
-          if (t.isInterface) continue;
-          name = t.name;
-          root = entry(t.isInterface ? AutocompleteType.TInterface : AutocompleteType.TClass, name, name, getRoot(t.pack), t.doc);
+          if (t.isInterface || StringTools.startsWith(t.name, "__ASSET_")) continue; // Don't include info about assets.
+          name = t.name + paramsToStr(params);
+          root = entry(AutocompleteType.TClass, t.name, name, getRoot(t.pack), t.doc);
           root.path = c.toString();
           for (field in t.fields.get())
           {
-            switch(field.type)
+            switch(field.kind)
             {
-              case Type.TFun(args, ret):
-                entry(field.isPublic ? AutocompleteType.TMethod : AutocompleteType.TPrivateMethod, field.name, field.name + typeToStr(field.type), root, field.doc);
-              default:
-                entry(field.isPublic ? AutocompleteType.TVariable : AutocompleteType.TPrivateVariable, field.name, field.name + ":" + typeToStr(field.type), root, field.doc);
+              case FieldKind.FVar(read, write):
+                if (read.match(VarAccess.AccNormal) && write.match(VarAccess.AccNormal)) // Typical variable
+                {
+                  entry(field.isPublic ? AutocompleteType.TVariable : AutocompleteType.TPrivateVariable, field.name, field.name + ":" + typeToStr(field.type), root, field.doc);
+                }
+                else // Property
+                {
+                  var name:String = field.name + ":" + typeToStr(field.type);
+                  if (!read.match(VarAccess.AccNever))
+                  {
+                    if (write.match(VarAccess.AccNever)) name += " (read only)";
+                  }
+                  else if (write.match(VarAccess.AccNever)) name += " (no access)"; // Ha.
+                  else name += " (write only)";
+                  entry(field.isPublic ? AutocompleteType.TProperty : AutocompleteType.TPrivateProperty, field.name, name, root, field.doc);
+                }
+              case FieldKind.FMethod(kind):
+                switch(field.type)
+                {
+                  case Type.TFun(args, ret):
+                    entry(field.isPublic ? AutocompleteType.TMethod : AutocompleteType.TPrivateMethod, field.name, field.name + typeToStr(field.type) + (kind.match(MethodKind.MethDynamic) ? " (dynamic)" : "" ), root, field.doc);
+                  default:
+                }
             }
           }
           
           for (field in t.statics.get())
           {
-            switch(field.type)
+            switch(field.kind)
             {
-              case Type.TFun(args, ret):
-                entry(field.isPublic ? AutocompleteType.TStaticMehtod : AutocompleteType.TPrivateStaticMethod, field.name, field.name + typeToStr(field.type), root, field.doc);
-              default:
-                entry(field.isPublic ? AutocompleteType.TStaticVariable : AutocompleteType.TPrivateStaticVariable, field.name, field.name + ":" + typeToStr(field.type), root, field.doc);
+              case FieldKind.FVar(read, write):
+                if (read.match(VarAccess.AccNormal) && write.match(VarAccess.AccNormal)) // Typical variable
+                {
+                  entry(field.isPublic ? AutocompleteType.TStaticVariable : AutocompleteType.TPrivateStaticVariable, field.name, field.name + ":" + typeToStr(field.type), root, field.doc);
+                }
+                else // Property
+                {
+                  var name:String = field.name + ":" + typeToStr(field.type);
+                  if (!read.match(VarAccess.AccNever))
+                  {
+                    if (!write.match(VarAccess.AccNever)) name += " (read only)";
+                  }
+                  else if (write.match(VarAccess.AccNever)) name += " (no access)"; // Ha.
+                  else name += " (write only)";
+                  entry(field.isPublic ? AutocompleteType.TStaticProperty : AutocompleteType.TPrivateStaticProperty, field.name, name, root, field.doc);
+                }
+              case FieldKind.FMethod(kind):
+                switch(field.type)
+                {
+                  case Type.TFun(args, ret):
+                    entry(field.isPublic ? AutocompleteType.TStaticMehtod : AutocompleteType.TPrivateStaticMethod, field.name, field.name + typeToStr(field.type) + (kind.match(MethodKind.MethDynamic) ? " (dynamic)" : "" ), root, field.doc);
+                  default:
+                }
             }
           }
-        case Type.TEnum(e, _):
+        case Type.TEnum(e, params):
           var t:EnumType = e.get();
-          name = t.name;
-          root = entry(AutocompleteType.TEnum, name, name, getRoot(t.pack), t.doc);
+          name = t.name + paramsToStr(params);
+          root = entry(AutocompleteType.TEnum, t.name, name, getRoot(t.pack), t.doc);
           root.path = e.toString();
           for (constr in t.constructs)
           {
             switch(constr.type)
             {
               case Type.TFun(args, _):
-                // YADC: TEnumFunc icon
-                entry(AutocompleteType.TEnum, constr.name, constr.name + "(" + functionArgsToStr(args), root, constr.doc) + ")";
+                entry(AutocompleteType.TEnumMethod, constr.name, constr.name + "(" + functionArgsToStr(args) + ")", root, constr.doc);
               default:
-                entry(AutocompleteType.TEnum, constr.name, constr.name, root, constr.doc);
+                entry(AutocompleteType.TEnumValue, constr.name, constr.name, root, constr.doc);
             }
           }
         default: continue;
       }
     }
     Context.addResource("__YADC_SCAN__", Bytes.ofString(Serializer.run(scan)));
+  }
+  
+  private static function paramsToStr(params:Array<Type>):String
+  {
+    if (params.length == 0) return "";
+    else
+    {
+      var buf:StringBuf = new StringBuf();
+      buf.addChar("<".code);
+      buf.add(typeToStr(params[0]));
+      for (i in 1...params.length)
+      {
+        buf.add(", ");
+        buf.add(typeToStr(params[i]));
+      }
+      buf.addChar(">".code);
+      return buf.toString();
+    }
   }
   
   private static function functionArgsToStr(args:Array<{ name : String, opt : Bool, t : Type }>, sep:String = ", "):String
@@ -111,26 +166,26 @@ class Initializer
   {
     switch (t)
     {
-      case Type.TAbstract(a, _):
-        return a.get().name;
+      case Type.TAbstract(a, params):
+        return a.get().name + paramsToStr(params);
       case Type.TAnonymous(a):
-        return "Anonymous";
+        return "Anonymous"; // YADC: Anynomous types stringification
       case Type.TDynamic(a):
         return "Dynamic" + (a == null ? "" : "<" + typeToStr(a) + ">");
-      case Type.TEnum(a, _):
-        return a.get().name;
+      case Type.TEnum(a, params):
+        return a.get().name + paramsToStr(params);
       case Type.TFun(args, ret):
         return "(" + functionArgsToStr(args) + "):" + typeToStr(ret);
-      case Type.TInst(t, _):
-        return t.get().name;
+      case Type.TInst(t, params):
+        return t.get().name + paramsToStr(params);
       case Type.TMono(r):
         var m:Type = r.get();
         if (m != null) return typeToStr(m);
         else return "TMono(Null)";
       case Type.TLazy(f):
         return "TLazy(Void->Type)";
-      case Type.TType(r, _):
-        return r.get().name;
+      case Type.TType(r, params):
+        return r.get().name + paramsToStr(params) + ":" + typeToStr(r.get().type);
     }
     return "";
   }
@@ -146,12 +201,16 @@ class Initializer
   private static function getRoot(packs:Array<String>):ScanEntry
   {
     var root:ScanEntry = scan;
+    var path:String = null;
     for (pack in packs)
     {
+      if (path == null) path = pack;
+      else path += "." + pack;
       if (root.childs.exists(pack)) root = root.childs.get(pack);
       else
       {
         root = entry(AutocompleteType.TPackage, pack, pack, root);
+        root.path = path;
       }
     }
     return root;

@@ -21,7 +21,7 @@ class AutocompleteHelper extends Sprite
   public var variables:Map<String, Dynamic>;
   public var commands:Array<ConsoleCommand>;
   public var scan:ScanEntry;
-  private var acScan:Map<ScanEntry, AutocompleteColumn>;
+  private var acScan:Map<String, AutocompleteColumn>;
   private var acVars:Map<String, AutocompleteColumn>;
   private var acComs:Map<ConsoleCommand, AutocompleteColumn>;
   private var classes:Array<ScanEntry>;
@@ -206,9 +206,18 @@ class AutocompleteHelper extends Sprite
           if (stack != null)
           {
             var fields:Array<String> = getVarFields(stack);
+            var existingProps:Array<String> = new Array();
             for (field in fields)
             {
-              if (StringTools.startsWith(field, last) && ignore.indexOf(field) == -1)
+              var propKey:String = 
+              if (StringTools.startsWith(field, "get_") || StringTools.startsWith(field, "set_")) field.substr(4);
+              else field;
+              if (propKey != field && existingProps.indexOf(propKey) == -1 && StringTools.startsWith(propKey, last) && ignore.indexOf(propKey) == -1)
+              {
+                existingProps.push(propKey);
+                possible.push(getVarColumn(Reflect.getProperty(stack, propKey), name + propKey, propKey, stack));
+              }
+              if ((propKey == field || last != "") && StringTools.startsWith(field, last) && ignore.indexOf(field) == -1)
               {
                 possible.push(getVarColumn(Reflect.field(stack, field), name + field, field, stack));
               }
@@ -264,11 +273,17 @@ class AutocompleteHelper extends Sprite
   {
     switch (Type.typeof(val))
     {
-      case ValueType.TBool, ValueType.TFloat, ValueType.TFunction, ValueType.TEnum(_), ValueType.TInt, ValueType.TNull, ValueType.TUnknown: return [];
-      case ValueType.TObject: return Reflect.fields(val);
-      default: //TClass
+      case ValueType.TBool, ValueType.TFloat, ValueType.TFunction, ValueType.TEnum(_), ValueType.TInt, ValueType.TNull, ValueType.TUnknown: return []; // Types don't have any fields
+      case ValueType.TObject:
+        #if flash // on flash target Enums is classes
         if (Std.is(val, Class)) return Type.getClassFields(val);
-        else return Type.getInstanceFields(Type.getClass(val));
+        #else
+        if (Std.is(val, Enum)) return Type.getEnumConstructs(val);
+        else if (Std.is(val, Class)) return Type.getClassFields(val);
+        #end
+        return Reflect.fields(val);
+      case ValueType.TClass(cl):
+        return Type.getInstanceFields(cl);
     }
   }
   
@@ -279,22 +294,24 @@ class AutocompleteHelper extends Sprite
     var t:ValueType = Type.typeof(val);
     var parentScan:ScanEntry = getScanFromVal(parent);
     var childScan:ScanEntry = null;
+    if (parentScan != null && (childScan = parentScan.child(name)) != null) return getScanColumn(childScan);
     switch(t)
     {
       case ValueType.TFunction:
-        if (parentScan != null && (childScan = parentScan.child(name)) != null) c = getScanColumn(childScan);
-        else
-        {
-          c = new AutocompleteColumn(AutocompleteType.TMethod, name, null, null);
-          c.typeof = t;
-          acVars.set(path, c);
-        }
+        c = new AutocompleteColumn(AutocompleteType.TMethod, name, null, null);
+        c.typeof = t;
+        acVars.set(path, c);
       case ValueType.TClass(cl):
-        c = getVarClassColumn(cl, Type.getClassName(cl), name);
+        c = getVarClassColumn(Type.getClassName(cl), name);
       case ValueType.TEnum(e):
-        c = getVarEnumColumn(e, Type.getEnumName(e), name);
+        c = getVarEnumColumn(Type.getEnumName(e), name);
       default:
-        if (parentScan != null && (childScan = parentScan.child(name)) != null) c = getScanColumn(childScan);
+        #if flash
+        if (Std.is(val, Class)) c = getVarClassColumn(Type.getClassName(val), name);
+        #else
+        if (Std.is(val, Enum)) c = getVarEnumColumn(Type.getEnumName(val), name);
+        else if (Std.is(val, Class)) c = getVarClassColumn(Type.getClassName(val), name);
+        #end
         else
         {
           c = new AutocompleteColumn(AutocompleteType.TVariable, name, null, null);
@@ -323,46 +340,98 @@ class AutocompleteHelper extends Sprite
           {
             if (sc.path == name) return sc;
           }
+        case ValueType.TObject:
+          #if flash
+          var name:String =
+          if (Std.is(val, Class)) Type.getClassName(val);
+          else null;
+          #else
+          var name:String = 
+          if (Std.is(val, Class)) Type.getClassName(val);
+          else if (Std.is(val, Enum)) Type.getEnumName(val);
+          else null;
+          #end
+          if (name != null)
+          {
+            for (sc in classes)
+            {
+              if (sc.path == name) return sc;
+            }
+          }
         default :
       }
     }
     return null;
   }
   
-  private function getVarClassColumn(cl:Class<Dynamic>, path:String, name:String):AutocompleteColumn
+  private function getVarEnumColumn(path:String, name:String):AutocompleteColumn
   {
+    var acVarsName:String = path + ":" + name;
+    if (acVars.exists(acVarsName)) return acVars.get(acVarsName);
     for (scan in classes)
     {
-      if (scan.type == AutocompleteType.TClass && scan.path == path) return getScanColumn(scan);
-    }
-    var c:AutocompleteColumn = new AutocompleteColumn(AutocompleteType.TClass, name, null, null);
-    acVars.set(path, c);
-    return c;
-  }
-  
-  private function getVarEnumColumn(e:Enum<Dynamic>, path:String, name:String):AutocompleteColumn
-  {
-    for (scan in classes)
-    {
-      if (scan.type == AutocompleteType.TEnum && scan.path == path) return getScanColumn(scan);
+      if (scan.path == path) return getScanColumn(scan, name);
     }
     var c:AutocompleteColumn = new AutocompleteColumn(AutocompleteType.TEnum, name, null, null);
-    acVars.set(path, c);
+    acVars.set(acVarsName, c);
     return c;
   }
   
-  private function getScanColumn(val:ScanEntry):AutocompleteColumn
+  private function getVarClassColumn(path:String, name:String):AutocompleteColumn
   {
-    if (acScan.exists(val)) return acScan.get(val);
-    var col:AutocompleteColumn = new AutocompleteColumn(val.type, val.name, val.descr, val);
-    acScan.set(val, col);
+    var acVarsName:String = path + ":" + name;
+    if (acVars.exists(acVarsName)) return acVars.get(acVarsName);
+    for (scan in classes)
+    {
+      if (scan.path == path) return getScanColumn(scan, name);
+    }
+    var c:AutocompleteColumn = new AutocompleteColumn(AutocompleteType.TClass, name, null, null);
+    acVars.set(acVarsName, c);
+    return c;
+  }
+  
+  private function getScanColumn(val:ScanEntry, customName:String = null):AutocompleteColumn
+  {
+    var name:String = val.path == null ? val.name : val.path;
+    if (customName != null) name += ":" + customName;
+    if (acScan.exists(name)) return acScan.get(name);
+    
+    if (customName != null)
+    {
+      switch(val.type)
+      {
+        case AutocompleteType.TClass, AutocompleteType.TEnum:
+          customName += ":" + val.name;
+        case AutocompleteType.TPrivateVariable, AutocompleteType.TPrivateStaticVariable, AutocompleteType.TVariable, AutocompleteType.TStaticVariable,
+             AutocompleteType.TPrivateProperty, AutocompleteType.TPrivateStaticProperty, AutocompleteType.TProperty, AutocompleteType.TStaticProperty:
+          customName += val.name.substr(val.name.indexOf(":"));
+        case AutocompleteType.TPrivateMethod, AutocompleteType.TPrivateStaticMethod, AutocompleteType.TMethod, AutocompleteType.TStaticMehtod, AutocompleteType.TEnumMethod:
+          customName += val.name.substr(val.name.indexOf("("));
+        default:
+      }
+    }
+    else customName = val.name;
+    
+    var col:AutocompleteColumn = new AutocompleteColumn(val.type, customName, val.descr, val);
+    acScan.set(name, col);
     return col;
   }
   
   private function getCommandColumn(comm:ConsoleCommand):AutocompleteColumn
   {
     if (acComs.exists(comm)) return acComs.get(comm);
-    var c:AutocompleteColumn = new AutocompleteColumn(AutocompleteType.TStaticMehtod, comm.name, comm.descr, null);
+    var name:String = comm.name;
+    for (type in comm.args)
+    {
+      switch(type)
+      {
+        case CommandArgumentType.TBool: name += " [Boolean]";
+        case CommandArgumentType.TFloat: name += " [Float]";
+        case CommandArgumentType.TInt: name += " [Int]";
+        case CommandArgumentType.TString: name += " [String]";
+      }
+    }
+    var c:AutocompleteColumn = new AutocompleteColumn(AutocompleteType.TStaticMehtod, name, comm.descr, null);
     acComs.set(comm, c);
     return c;
   }
@@ -387,29 +456,34 @@ class AutocompleteColumn extends Sprite
     this.name = name;
     this.descr = descr;
     this.type = type;
-    var ico:BitmapData = null;
+    var ico:BitmapData = 
     switch (type)
     {
-      case AutocompleteType.TClass: ico = Assets.getBitmapData("YADConsoleResources/Class.png");
-      case AutocompleteType.TEnum: ico = Assets.getBitmapData("YADConsoleResources/Const.png");
-      case AutocompleteType.TInterface: ico = Assets.getBitmapData("YADConsoleResources/Interface.png");
-      case AutocompleteType.TPackage: ico = Assets.getBitmapData("YADConsoleResources/Package.png");
+      case AutocompleteType.TClass: Assets.getBitmapData("YADConsoleResources/Class.png");
+      case AutocompleteType.TInterface: Assets.getBitmapData("YADConsoleResources/Interface.png");
+      case AutocompleteType.TPackage: Assets.getBitmapData("YADConsoleResources/Package.png");
       
-      case AutocompleteType.TStaticMehtod: ico = Assets.getBitmapData("YADConsoleResources/MethodStatic.png");
-      case AutocompleteType.TStaticProperty: ico = Assets.getBitmapData("YADConsoleResources/PropertyStatic.png");
-      case AutocompleteType.TStaticVariable: ico = Assets.getBitmapData("YADConsoleResources/VariableStatic.png");
+      case AutocompleteType.TEnum: Assets.getBitmapData("YADConsoleResources/Enum.png");
+      case AutocompleteType.TEnumMethod: Assets.getBitmapData("YADConsoleResources/EnumMethod.png");
+      case AutocompleteType.TEnumValue: Assets.getBitmapData("YADConsoleResources/EnumValue.png");
       
-      case AutocompleteType.TPrivateMethod: ico = Assets.getBitmapData("YADConsoleResources/MethodPrivate.png");
-      case AutocompleteType.TPrivateProperty: ico = Assets.getBitmapData("YADConsoleResources/PropertyPrivate.png");
-      case AutocompleteType.TPrivateVariable: ico = Assets.getBitmapData("YADConsoleResources/VariablePrivate.png");
+      case AutocompleteType.TStaticMehtod: Assets.getBitmapData("YADConsoleResources/MethodStatic.png");
+      case AutocompleteType.TStaticProperty: Assets.getBitmapData("YADConsoleResources/PropertyStatic.png");
+      case AutocompleteType.TStaticVariable: Assets.getBitmapData("YADConsoleResources/VariableStatic.png");
       
-      case AutocompleteType.TPrivateStaticMethod: ico = Assets.getBitmapData("YADConsoleResources/MethodStaticPrivate.png");
-      case AutocompleteType.TPrivateStaticProperty: ico = Assets.getBitmapData("YADConsoleResources/PropertyStaticPrivate.png");
-      case AutocompleteType.TPrivateStaticVariable: ico = Assets.getBitmapData("YADConsoleResources/VariableStaticPrivate.png");
+      case AutocompleteType.TPrivateMethod: Assets.getBitmapData("YADConsoleResources/MethodPrivate.png");
+      case AutocompleteType.TPrivateProperty: Assets.getBitmapData("YADConsoleResources/PropertyPrivate.png");
+      case AutocompleteType.TPrivateVariable: Assets.getBitmapData("YADConsoleResources/VariablePrivate.png");
       
-      case AutocompleteType.TMethod: ico = Assets.getBitmapData("YADConsoleResources/Method.png");
-      case AutocompleteType.TVariable: ico = Assets.getBitmapData("YADConsoleResources/Variable.png");
-      case AutocompleteType.TProperty: ico = Assets.getBitmapData("YADConsoleResources/Property.png");
+      case AutocompleteType.TPrivateStaticMethod: Assets.getBitmapData("YADConsoleResources/MethodStaticPrivate.png");
+      case AutocompleteType.TPrivateStaticProperty: Assets.getBitmapData("YADConsoleResources/PropertyStaticPrivate.png");
+      case AutocompleteType.TPrivateStaticVariable: Assets.getBitmapData("YADConsoleResources/VariableStaticPrivate.png");
+      
+      case AutocompleteType.TMethod: Assets.getBitmapData("YADConsoleResources/Method.png");
+      case AutocompleteType.TVariable: Assets.getBitmapData("YADConsoleResources/Variable.png");
+      case AutocompleteType.TProperty: Assets.getBitmapData("YADConsoleResources/Property.png");
+      
+      default: null;
     }
     var offset:Float = 0;
     if (ico != null)

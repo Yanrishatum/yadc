@@ -42,7 +42,6 @@ import openfl.text.TextFormat;
 import openfl.ui.Keyboard;
 
 #if hscript
-import hscript.Interp;
 import hscript.Parser;
 import hscript.Expr;
 #end
@@ -63,8 +62,10 @@ class Console extends Sprite
   // YADC: Properties support (requires modding of HScript, because it's uses setField instead of setProperty)
   // YADC: Normal ConsoleCommand description for autocomplete.
   // YADC: Anonymous types variable type descriptions for helper.
+  // YADC: <T> support. (Array<T>, etc, partially done)
+  // YADC: Constructor info
   
-  private static inline var VERSION:String = "0.0.2";
+  private static inline var VERSION:String = "0.0.5";
   
   /**
    * The consle instance
@@ -108,7 +109,7 @@ class Console extends Sprite
   
   #if hscript
   
-  private var interp:Interp;
+  private var interp:PropInterp;
   private var parser:Parser;
   
   #end
@@ -167,7 +168,7 @@ class Console extends Sprite
     }
     #else
     
-    interp = new Interp();
+    interp = new PropInterp();
     parser = new Parser();
     
     interp.variables.set("clear", clear);

@@ -21,8 +21,11 @@ enum AutocompleteType
   TStaticVariable;
   TVariable;
   
+  TEnum;
+  TEnumValue;
+  TEnumMethod;
+  
   TClass;
   TInterface;
-  TEnum;
   TPackage;
 }

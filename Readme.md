@@ -1,16 +1,45 @@
 ## Yet Another Debug Console.
-
 Provides basic console capabilities.  
-Commands can be used for simple or in-game restricted use. They can take only 4 types - String, Bool, Float, Int.  
-Format of commands:  
-`<command name> [arg] [arg] '[arg that contains spaces]' "[args that cotains spaces]"`  
-It's recommended to make all command handler arguments optional.  
 
-But mainly console designed for using HScript library. (It's not in dependency list, you must include it manualy)  
-Main feature of console is autocomplete, which can be used to speed up writing. The console will show available variables for objects.  
-Also you can define "yadc_scan" for advanced class scan. Console will scan all classes in compiled project and will generate an advanced information about methods and variables, and also automatically defines all classes to access inside of scripts.  
+### Quick start
+#### Installation
+The library currently only available on github, no lib.haxe release yet.
+`haxelib git yadc https://github.com/Yanrishatum/yadc.git`
+#### Enabling console
+Call `com.yanri.yadconsole.Console.enable();` from any place of your program.  
+Method will return Console instance and will add it to Lib.current.  
+`Console.enable` method takes 2 arguments - ConsoleMode and trace capture boolean. If trace capture set to true, all trace calls will be shown in console (yet original trace still will be called).  
+If you'll need to access Console instance later, you can found it at `com.yanri.yadconsole.Console.c`.  
+To define new commands, use the `addCommand(name:String, ?args:Array<CommandArgumentType>, ?descr:String, handler:Dynamic, thisObj:Dynamic)` method in Console instance.  
+To add new variable in scripts, use the `addVariable(name:String, value:Dynamic)` method.  
+
+### Autocomplete
+Console provides autocomplete for commands and scripts. It will show possible completions, while user writes text.  
+To insert first autocomplete suggestion, you can press `tab` key.  
+Note, that basic autocomplete provides only names of variables.
+#### The `yadc_scan` define
+You can set define `yadc_scan` to perform advanced typing for autocomplete types. If that define set, all compiled classes will be available from scripts, and even types of the variables and functions will be available.  
+Note: The application may freeze, while unserializing types info.  
+
 Images used in autocomplete component taken from FlashDevelop.  
 
+### Console modes
+#### Commands
+Restricted mode, that allows to use only predefined commands. May be used for in-game console, which not gives full control over application.  
+Console commands can take only 4 types of arguments - String, Bool, Float, Int.  
+Format of commands use:  
+`<command name> [arg0] [arg1] '[argument that contains spaces]' "[argument that contains spaces]"`  
+Example:  
+`bind z pause` - will trigger command `bind` and will send to it 2 String arguments "z" and "pause".  
+It's highly recommended to make all arguments in command handler function optional.  
+#### Scripts
+Mode, that allows to use HScript library in console. Note, that you must manually include HScript library, it's not automatically imports by YADC. If HScript not available, console mode will be changed to "Commands".  
+Main feature of console is autocomplete for scripts.  
+#### Hybrid
+Combined mode. At first, console will try to execute input as Command, and if no such command found (or if there's error while parsing input for command), input will be executed as script.  
+It's a default console mode.  
+  
+  
 This work is licensed under MIT License.
 
 Copyright (c) 2014 Pavel Alexandrov / Yanrishatum

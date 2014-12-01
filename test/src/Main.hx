@@ -22,6 +22,9 @@ class Main extends Sprite
 		super();
     t = new TestClass();
 		Console.enable(ConsoleMode.Scripts).visible = true;
+    Console.c.addVariable("t", TestEnum);
+    Console.c.addVariable("c", TestClass);
+    Console.c.addVariable("i", new TestClass());
     //var t:TestEnum = TestEnum.ParametrizedValue(2);
     //trace(t);
 		// Assets:

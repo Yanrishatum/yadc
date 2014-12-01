@@ -15,6 +15,10 @@ class TestClass
   public static var publicStaticVar:Int;
   private static var privateStaticVar:Int;
   
+  public var array:Array<Dynamic>;
+  public var array2:Array<Int>;
+  public var array3:Array<Array<TestClass>>;
+  
   public static function publicStaticFunction():Void
   {
     

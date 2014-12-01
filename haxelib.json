@@ -4,8 +4,8 @@
   "license": "MIT",
   "tags": ["debug", "console"],
   "description": "Yet another implementation of debug runtime console. Main features work only with HScript library. Main feature - autocomplete for variables, access to all classes in compiled file and extended fields information.",
-  "version": "0.0.1",
-  "releasenote": "Initial release.",
+  "version": "0.0.5",
+  "releasenote": "autocomplete fixes.",
   "contributors": ["Yanrishatum"],
   "dependencies":
   {
