@@ -359,10 +359,12 @@ class Console extends Sprite
           if (visible)
           {
             prevTarget = stage.focus;
+            this.dispatchEvent(new Event(ConsoleEvent.ENABLED));
           }
           else
           {
             stage.focus = prevTarget;
+            this.dispatchEvent(new Event(ConsoleEvent.DISABLED));
           }
         case Keyboard.TAB:
           applyAutocomplete();

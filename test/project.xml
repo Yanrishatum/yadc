@@ -23,7 +23,6 @@
   <!-- assets -->
   <haxeflag name="--macro" value="com.yanri.yadconsole.Initializer.init()" />
 	<assets path="../assets/img" rename="YADConsoleResources" />
-	
 	<!-- optimize output
 	<haxeflag name="-dce full" /> -->
 	

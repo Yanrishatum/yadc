@@ -16,8 +16,8 @@
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="S:\HaxeToolkit\haxe\lib\openfl\2,1,5" />
-    <class path="S:\HaxeToolkit\haxe\lib\lime\2,0,0-beta" />
+    <class path="S:\HaxeToolkit\haxe\lib\openfl\2,1,6" />
+    <class path="S:\HaxeToolkit\haxe\lib\lime\2,0,0" />
     <class path="S:\HaxeToolkit\haxe\lib\actuate\1,7,5" />
     <class path="S:\HaxeToolkit\haxe\lib\hscript\2,0,4" />
     <class path=".." />
@@ -26,7 +26,7 @@
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="openfl=2.1.5&#xA;lime=2.0.0-beta&#xA;actuate=1.7.5&#xA;hscript=2.0.4&#xA;tools=2.0.0-beta&#xA;yadc_scan&#xA;no-compilation&#xA;openfl-flash&#xA;web" />
+    <option directives="openfl=2.1.6&#xA;lime=2.0.0&#xA;actuate=1.7.5&#xA;hscript=2.0.4&#xA;tools=2.0.0&#xA;yadc_scan&#xA;no-compilation&#xA;openfl-flash&#xA;web" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />
