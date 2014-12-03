@@ -16,7 +16,8 @@ class ConsoleCommand
   public function new(name:String, ?args:Array<CommandArgumentType>, ?descr:String, handler:Dynamic, thisObj:Dynamic) 
   {
     this.name = name.toLowerCase();
-    this.args = args;
+    if (args == null) this.args = new Array();
+    else this.args = args;
     this.descr = descr;
     this.handler = handler;
     this.thisObj = thisObj;
